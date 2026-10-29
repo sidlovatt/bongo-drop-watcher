@@ -1,0 +1,30 @@
+name: Bongo drop watcher
+
+on:
+  schedule:
+    # Every 5 minutes, 05:00-21:55 UTC (6am-10:55pm UK in summer, 5am-9:55pm in winter)
+    - cron: "*/5 5-21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shop
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python3 watch.py
+      - name: Save state
+        run: |
+          git config user.name "bongo-watcher"
+          git config user.email "actions@users.noreply.github.com"
+          git add seen.json
+          git diff --cached --quiet || (git commit -m "Update seen products" && git push)
