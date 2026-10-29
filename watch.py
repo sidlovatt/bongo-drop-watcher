@@ -77,12 +77,16 @@ def main():
         return
 
     seen = json.load(open(STATE_FILE))
+    alerts = 0
     for p in products:
         pid = p["id"]
         if pid not in seen:
             notify("New on Bongo Spares!", p)
+            alerts += 1
         elif current[pid] and not seen[pid]:
             notify("Now on SALE at Bongo Spares!", p)
+            alerts += 1
+    print(f"Checked {len(products)} products, {alerts} alert(s) sent.")
 
     # Keep ids of products that vanished, so a relisting isn't re-alerted as new
     seen.update(current)
